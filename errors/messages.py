@@ -1,0 +1,7 @@
+BLANK_ERROR = "'{}' cannot be blank."
+USER_ALREADY_EXISTS = "A user with that username already exists."
+CREATED_SUCCESSFULLY = "User created successfully."
+USER_NOT_FOUND = "User not found."
+USER_DELETED = "User deleted."
+INVALID_CREDENTIALS = "Invalid credentials!"
+USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
