@@ -29,16 +29,28 @@ user_schema = UserSchema()
 class UserRegister(Resource):
     @classmethod
     def post(cls):
+        # user_data : is dictionary or user obj based on coding of Schema
+        # if you are inherit from Schema ==> user_data is dictionary
+        # if you are inherit from ModelSchema ==> user_data is user obj
+
         try:
-            user_data = user_schema.load(request.get_json())  # shift + f6 to update all usages of variable
+            user_data = user_schema.load(
+                request.get_json()
+            )  # shift + f6 to update all usages of variable
         except ValidationError as err:  # errors comes from marshmallow validations
             return err.messages, 400
 
-        if UserModel.find_by_username(user_data["username"]):
+        # if UserModel.find_by_username(user_data["username"]):
+        #     return {"message": USER_ALREADY_EXISTS}, 400
+
+        if UserModel.find_by_username(user_data.username):
             return {"message": USER_ALREADY_EXISTS}, 400
 
-        user = UserModel(**user_data)
-        user.save_to_db()
+        # user = UserModel(**user_data)  (old) when using Schema not ModelSchema
+
+        # no need UserModel because we are using nullable=False for username and password
+        # user = UserModel(username=user_data.username, password=user_data.password)
+        user_data.save_to_db()  # user_data is now user obj not dictionary
 
         return {"message": CREATED_SUCCESSFULLY}, 201
 
@@ -70,15 +82,20 @@ class User(Resource):
 class UserLogin(Resource):
     @classmethod
     def post(cls):
+        # user_data : is dictionary or user obj based on coding of Schema
+        # if you are inherit from Schema ==> user_data is dictionary
+        # if you are inherit from ModelSchema ==> user_data is user obj
         try:
-            user_data = user_schema.load(request.get_json())
+            user_json = request.get_json()
+            user_data = user_schema.load(user_json)
         except ValidationError as err:
             return err.messages, 400
 
-        user = UserModel.find_by_username(user_data["username"])
+        # user = UserModel.find_by_username(user_data["username"])
+        user = UserModel.find_by_username(user_data.username)
 
         # this is what the `authenticate()` function did in security.py
-        if user and safe_str_cmp(user.password, user_data["password"]):
+        if user and safe_str_cmp(user.password, user_json.get("password")):
             # identity= is what the identity() function did in security.py—now stored in the JWT
             access_token = create_access_token(identity=user.id, fresh=True)
             refresh_token = create_refresh_token(user.id)
