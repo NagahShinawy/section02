@@ -32,13 +32,16 @@ class UserRegister(Resource):
         # user_data : is dictionary or user obj based on coding of Schema
         # if you are inherit from Schema ==> user_data is dictionary
         # if you are inherit from ModelSchema ==> user_data is user obj
-
-        try:
-            user_data = user_schema.load(
-                request.get_json()
-            )  # shift + f6 to update all usages of variable
-        except ValidationError as err:  # errors comes from marshmallow validations
-            return err.messages, 400
+        user_data = user_schema.load(
+            request.get_json()
+        )  # shift + f6 to update all usages of variable
+        # try:
+        #     user_data = user_schema.load(
+        #         request.get_json()
+        #     )  # shift + f6 to update all usages of variable
+        # todo : use @app.errorhandler(ValidationError) instead
+        # except ValidationError as err:  # errors comes from marshmallow validations
+        #     return err.messages, 400
 
         # if UserModel.find_by_username(user_data["username"]):
         #     return {"message": USER_ALREADY_EXISTS}, 400
@@ -85,11 +88,14 @@ class UserLogin(Resource):
         # user_data : is dictionary or user obj based on coding of Schema
         # if you are inherit from Schema ==> user_data is dictionary
         # if you are inherit from ModelSchema ==> user_data is user obj
-        try:
-            user_json = request.get_json()
-            user_data = user_schema.load(user_json)
-        except ValidationError as err:
-            return err.messages, 400
+        user_json = request.get_json()
+        user_data = user_schema.load(user_json)
+        # try:
+        #     user_json = request.get_json()
+        #     user_data = user_schema.load(user_json)
+        #  todo : use @app.errorhandler(ValidationError) instead
+        # except ValidationError as err:
+        #     return err.messages, 400
 
         # user = UserModel.find_by_username(user_data["username"])
         user = UserModel.find_by_username(user_data.username)

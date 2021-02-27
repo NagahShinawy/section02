@@ -16,7 +16,6 @@ items_schema = ItemSchema(many=True)
 
 
 class Item(Resource):
-
     @classmethod
     def get(cls, name: str):
 
@@ -35,15 +34,16 @@ class Item(Resource):
         # data = cls.parser.parse_args() (old)
         item_json = request.get_json()
         item_json.update(name=name)
-        try:
-            item = item_schema.load(item_json)
-        except ValidationError as err:
-            return err.messages, 400
+        item = item_schema.load(item_json)
+        # try:
+        #     item = item_schema.load(item_json)
+        # except ValidationError as err:  # todo : use @app.errorhandler(ValidationError) instead
+        #     return err.messages, 400
         # item = ItemModel(name=name, price=item_obj.price, store_id=item_obj.store_id) (old)
 
         try:
             item.save_to_db()
-        except :
+        except:
             return {"message": ERROR_INSERTING}, 500
 
         # return item.json(), 201 (old)
@@ -63,16 +63,20 @@ class Item(Resource):
         # data = cls.parser.parse_args() (old)
         item_json = request.get_json()
         # item = ItemModel.find_by_name(name=name)
-        item = ItemModel.find_by_name_and_store(name=name, store_id=item_json.get("store_id"))
+        item = ItemModel.find_by_name_and_store(
+            name=name, store_id=item_json.get("store_id")
+        )
         if item:
             item.price = item_json["price"]
         else:
-            try:
-
-                item_json.update({"name": name})
-                item = item_schema.load(item_json)
-            except ValidationError as err:
-                return err.messages, 400
+            item_json.update({"name": name})
+            item = item_schema.load(item_json)
+            # try:
+            #
+            #     item_json.update({"name": name})
+            #     item = item_schema.load(item_json)
+            # except ValidationError as err:  todo : use @app.errorhandler(ValidationError) instead
+            #     return err.messages, 400
         try:
             item.save_to_db()
         except Exception:
