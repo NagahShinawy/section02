@@ -9,10 +9,10 @@ class ItemModel(db.Model):
     __tablename__ = "items"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    price = db.Column(db.Float(precision=2))
+    name = db.Column(db.String(80), unique=True, nullable=False)
+    price = db.Column(db.Float(precision=2), nullable=False)
 
-    store_id = db.Column(db.Integer, db.ForeignKey("stores.id"))
+    store_id = db.Column(db.Integer, db.ForeignKey("stores.id"), nullable=False)
     store = db.relationship("StoreModel")
 
     def __init__(self, name: str, price: float, store_id: int):
@@ -38,7 +38,8 @@ class ItemModel(db.Model):
 
     @classmethod
     def find_all(cls) -> List["ItemModel"]:
-        return cls.query.all().order_by("id desc")
+        return cls.query.all()
+        # return cls.query.order_by("id asc")
 
     def save_to_db(self) -> None:
         db.session.add(self)

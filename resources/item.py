@@ -39,9 +39,6 @@ class Item(Resource):
             item = item_schema.load(item_json)
         except ValidationError as err:
             return err.messages, 400
-
-        except Exception as err:
-            return str(err), 400
         # item = ItemModel(name=name, price=item_obj.price, store_id=item_obj.store_id) (old)
 
         try:
