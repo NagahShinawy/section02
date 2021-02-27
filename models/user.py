@@ -1,6 +1,6 @@
 from typing import Dict, Union
 
-from db import db
+from section02.db import db
 
 UserJSON = Dict[str, Union[int, str]]
 
@@ -11,6 +11,8 @@ class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
+    activated = db.Column(db.Boolean, default=False)
+    gender = db.Column(db.Boolean, default=False)
 
     def json(self) -> UserJSON:
         return {"id": self.id, "username": self.username}

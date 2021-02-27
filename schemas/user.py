@@ -27,4 +27,7 @@ class UserSchema(ma.ModelSchema):
         load_only = (
             "password",
         )  # means just use password field on load(POST, request body) not dump(GET, response body)
-        dump_only = ("id",)  # return it only (used in GET) ==> dump_only=True
+        dump_only = (
+            "id",
+            "activated",
+        )  # return it only (used in GET) ==> dump_only=True

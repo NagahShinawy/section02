@@ -5,7 +5,14 @@ from db import db
 from ma import ma
 from marshmallow import ValidationError
 from blacklist import BLACKLIST
-from resources.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
+from resources.user import (
+    UserRegister,
+    UserLogin,
+    User,
+    TokenRefresh,
+    UserLogout,
+    UserConfirm,
+)
 from resources.item import Item, ItemList
 from resources.store import Store, StoreList
 
@@ -34,6 +41,8 @@ def handle_marshmallow_error(err):  # except validationError as err
     return jsonify(err.messages), 400
 
 
+db.init_app(app)
+
 jwt = JWTManager(app)
 
 
@@ -43,15 +52,18 @@ def check_if_token_in_blacklist(decrypted_token):
     return decrypted_token["jti"] in BLACKLIST
 
 
+
 api.add_resource(Store, "/store/<string:name>")
 api.add_resource(StoreList, "/stores")
 api.add_resource(Item, "/item/<string:name>")
 api.add_resource(ItemList, "/items")
 api.add_resource(UserRegister, "/register")
+api.add_resource(UserConfirm, "/user_confirm/<int:user_id>")
 api.add_resource(User, "/user/<int:user_id>")
 api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(UserLogout, "/logout")
+
 
 if __name__ == "__main__":
     db.init_app(app)

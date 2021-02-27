@@ -1,5 +1,5 @@
 from flask_restful import Resource
-from flask import request
+from flask import request, make_response, render_template
 from werkzeug.security import safe_str_cmp
 from flask_jwt_extended import (
     create_access_token,
@@ -21,6 +21,8 @@ from errors.messages import (
     USER_DELETED,
     INVALID_CREDENTIALS,
     USER_LOGGED_OUT,
+    NOT_CONFIRMED_USER,
+    USER_CONFIRMED,
 )
 
 user_schema = UserSchema()
@@ -103,9 +105,15 @@ class UserLogin(Resource):
         # this is what the `authenticate()` function did in security.py
         if user and safe_str_cmp(user.password, user_json.get("password")):
             # identity= is what the identity() function did in security.py—now stored in the JWT
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
-            return {"access_token": access_token, "refresh_token": refresh_token}, 200
+            if user.activated:
+                access_token = create_access_token(identity=user.id, fresh=True)
+                refresh_token = create_refresh_token(user.id)
+                return {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                }, 200
+            else:
+                return {"message": NOT_CONFIRMED_USER.format(user.username)}, 400
 
         return {"message": INVALID_CREDENTIALS}, 401
 
@@ -127,3 +135,16 @@ class TokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
+
+
+class UserConfirm(Resource):
+    @classmethod
+    def get(cls, user_id):
+        user = UserModel.find_by_id(user_id)
+        if not user:
+            return {"message": USER_NOT_FOUND}, 404
+        user.activated = True
+        user.save_to_db()
+        # return {"message": USER_CONFIRMED.format(user.username)}, 200
+        headers = {"Content-Type": "text/html"}
+        return make_response(render_template("confirmation_page.html", email=user.username), 200, headers)

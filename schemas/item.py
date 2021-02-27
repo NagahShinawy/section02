@@ -1,6 +1,6 @@
-from ma import ma
-from models.item import ItemModel
-from models.store import StoreModel
+from section02.ma import ma
+from section02.models.item import ItemModel
+from section02.models.store import StoreModel
 
 
 class ItemSchema(ma.ModelSchema):
