@@ -1,6 +1,6 @@
 from flask_restful import Resource
-from section02.models.store import StoreModel
-from section02.schemas.store import StoreSchema
+from models.store import StoreModel
+from schemas.store import StoreSchema
 
 
 NAME_ALREADY_EXISTS = "A store with name '{}' already exists."

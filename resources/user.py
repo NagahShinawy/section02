@@ -1,3 +1,4 @@
+import traceback
 from flask_restful import Resource
 from flask import request, make_response, render_template
 from werkzeug.security import safe_str_cmp
@@ -23,6 +24,9 @@ from errors.messages import (
     USER_LOGGED_OUT,
     NOT_CONFIRMED_USER,
     USER_CONFIRMED,
+    EMAIL_ALREADY_EXISTS,
+    FAILED_TO_CREATE,
+    SUCCESS_REGISTER_MESSAGE,
 )
 
 user_schema = UserSchema()
@@ -51,13 +55,20 @@ class UserRegister(Resource):
         if UserModel.find_by_username(user_data.username):
             return {"message": USER_ALREADY_EXISTS}, 400
 
+        if UserModel.find_by_email(user_data.email):
+            return {"message": EMAIL_ALREADY_EXISTS}, 400
+
         # user = UserModel(**user_data)  (old) when using Schema not ModelSchema
 
         # no need UserModel because we are using nullable=False for username and password
         # user = UserModel(username=user_data.username, password=user_data.password)
-        user_data.save_to_db()  # user_data is now user obj not dictionary
-
-        return {"message": CREATED_SUCCESSFULLY}, 201
+        try:
+            user_data.save_to_db()  # user_data is now user obj not dictionary
+            user_data.send_email_confirmation()
+            return {"message": SUCCESS_REGISTER_MESSAGE}, 201
+        except Exception as err:
+            traceback.print_exc()
+            return {"messages": FAILED_TO_CREATE}, 500
 
 
 class User(Resource):
@@ -91,7 +102,9 @@ class UserLogin(Resource):
         # if you are inherit from Schema ==> user_data is dictionary
         # if you are inherit from ModelSchema ==> user_data is user obj
         user_json = request.get_json()
-        user_data = user_schema.load(user_json)
+        user_data = user_schema.load(
+            user_json, partial=("email",)
+        )  # partial means ignore email if not present
         # try:
         #     user_json = request.get_json()
         #     user_data = user_schema.load(user_json)
@@ -147,4 +160,6 @@ class UserConfirm(Resource):
         user.save_to_db()
         # return {"message": USER_CONFIRMED.format(user.username)}, 200
         headers = {"Content-Type": "text/html"}
-        return make_response(render_template("confirmation_page.html", email=user.username), 200, headers)
+        return make_response(
+            render_template("confirmation_page.html", email=user.email), 200, headers
+        )
